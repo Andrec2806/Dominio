@@ -1,1 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Resuelve desigualdades</title>
+</head>
+<body>
+  <h2>Resuelve desigualdades lineales y cuadráticas</h2>
+  <input type="text" id="inequality" placeholder="Ej. x^2 + 5x - 7 > 0" size="40">
+  <button onclick="resolver()">Resolver</button>
+
+  <h3>Resultado:</h3>
+  <pre id="resultado"></pre>
+
+  <script>
+    function resolver() {
+      const input = document.getElementById("inequality").value;
+      const output = document.getElementById("resultado");
+
+      try {
+        const inequality = input.replace(/\s+/g, '');
+        const match = inequality.match(/(.+)([<>]=?|==)(.+)/);
+
+        if (!match) {
+          output.textContent = "Formato inválido. Usa algo como: x^2+5x-7>0";
+          return;
+        }
+
+        const left = match[1];
+        const operator = match[2];
+        const right = match[3];
+
+        const expr = left + '-(' + right + ')';
+        const coeffs = getCoefficients(expr);
+
+        if (coeffs.a === 0 && coeffs.b === 0) {
+          output.textContent = "No es una desigualdad válida.";
+        } else if (coeffs.a === 0) {
+          // Lineal
+          const x = -coeffs.c / coeffs.b;
+          let sol;
+          switch (operator) {
+            case '<': sol = `x < ${x}`; break;
+            case '<=': sol = `x ≤ ${x}`; break;
+            case '>': sol = `x > ${x}`; break;
+            case '>=': sol = `x ≥ ${x}`; break;
+            default: sol = `x = ${x}`; break;
+          }
+          output.textContent = `Desigualdad lineal.\nSolución: ${sol}`;
+        } else {
+          // Cuadrática
+          const D = coeffs.b ** 2 - 4 * coeffs.a * coeffs.c;
+          if (D < 0) {
+            output.textContent = "No hay raíces reales. Analiza el signo de la parábola.";
+            return;
+          }
+          const x1 = (-coeffs.b - Math.sqrt(D)) / (2 * coeffs.a);
+          const x2 = (-coeffs.b + Math.sqrt(D)) / (2 * coeffs.a);
+          const a = coeffs.a;
+          let sol = "";
+
+          if (operator === '>') {
+            sol = a > 0
+              ? `x ∈ (-∞, ${x1.toFixed(2)}) ∪ (${x2.toFixed(2)}, ∞)`
+              : `x ∈ (${x1.toFixed(2)}, ${x2.toFixed(2)})`;
+          } else if (operator === '>=') {
+            sol = a > 0
+              ? `x ∈ (-∞, ${x1.toFixed(2)}] ∪ [${x2.toFixed(2)}, ∞)`
+              : `x ∈ [${x1.toFixed(2)}, ${x2.toFixed(2)}]`;
+          } else if (operator === '<') {
+            sol = a > 0
+              ? `x ∈ (${x1.toFixed(2)}, ${x2.toFixed(2)})`
+              : `x ∈ (-∞, ${x1.toFixed(2)}) ∪ (${x2.toFixed(2)}, ∞)`;
+          } else if (operator === '<=') {
+            sol = a > 0
+              ? `x ∈ [${x1.toFixed(2)}, ${x2.toFixed(2)}]`
+              : `x ∈ (-∞, ${x1.toFixed(2)}] ∪ [${x2.toFixed(2)}, ∞)`;
+          }
+
+          output.textContent = `Desigualdad cuadrática.\nRaíces: x₁ = ${x1.toFixed(2)}, x₂ = ${x2.toFixed(2)}\nSolución: ${sol}`;
+        }
+
+      } catch (err) {
+        output.textContent = "Error al resolver: " + err.message;
+      }
+    }
+
+    function getCoefficients(expr) {
+      const parsed = expr.replace(/-/g, '+-').split('+');
+      let a = 0, b = 0, c = 0;
+
+      parsed.forEach(term => {
+        if (term.includes('x^2')) {
+          a += parseFloat(term.replace('x^2', '')) || (term[0] === '-' ? -1 : 1);
+        } else if (term.includes('x')) {
+          b += parseFloat(term.replace('x', '')) || (term[0] === '-' ? -1 : 1);
+        } else if (term) {
+          c += parseFloat(term);
+        }
+      });
+
+      return { a, b, c };
+    }
+  </script>
+</body>
+</html>
 
